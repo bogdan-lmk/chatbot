@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+sqlalchemy
+aiosqlite
+PyPDF2
+langchain
+faiss-cpu
+openai
+jinja2
+pydantic-settings
+langchain-community
+greenlet
+tiktoken

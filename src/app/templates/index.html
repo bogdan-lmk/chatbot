@@ -1,0 +1,41 @@
+<!-- src/app/templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Agent Chat</title>
+</head>
+<body>
+  <h1>AI Agent Chat</h1>
+  <div id="chat"></div>
+  <form id="chat-form">
+    <input type="hidden" id="thread_id" value="main">
+    <textarea id="message" rows="4" cols="50" placeholder="Type your question..."></textarea><br>
+    <button type="submit">Send</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('chat-form');
+    const chatDiv = document.getElementById('chat');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const thread_id = document.getElementById('thread_id').value;
+      const message = document.getElementById('message').value;
+      const userElem = document.createElement('p');
+      userElem.textContent = 'You: ' + message;
+      chatDiv.appendChild(userElem);
+
+      const res = await fetch('/api/v1/message', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({thread_id, message})
+      });
+      const data = await res.json();
+      const botElem = document.createElement('p');
+      botElem.textContent = 'Bot: ' + data.reply;
+      chatDiv.appendChild(botElem);
+      document.getElementById('message').value = '';
+    });
+  </script>
+</body>
+</html>

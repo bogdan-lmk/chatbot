@@ -1,0 +1,15 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  agent:
+    build: .
+    container_name: ai_agent
+    volumes:
+      - ./data:/app/data
+      - ./scripts:/app/scripts
+      - ./src:/app/src
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DATABASE_URL=${DATABASE_URL}
