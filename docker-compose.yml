@@ -1,5 +1,4 @@
 # docker-compose.yml
-version: '3.8'
 services:
   agent:
     build: .
@@ -11,9 +10,19 @@ services:
     ports:
       - "8000:8000"
     environment:
+      # Docker Compose автоматически читает .env файл из текущей директории
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - DATABASE_URL=${DATABASE_URL}
-      - ASSISTANT_ID=${ASSISTANT_ID}
-      - USE_ASSISTANT_API=${USE_ASSISTANT_API}
-      - ASSISTANT_TIMEOUT=${ASSISTANT_TIMEOUT}
-      - MAX_ASSISTANT_TOKENS=${MAX_ASSISTANT_TOKENS}
+      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///./data/db.sqlite3}
+      - ASSISTANT_ID=${ASSISTANT_ID:-}
+      - USE_ASSISTANT_API=${USE_ASSISTANT_API:-false}
+      - ASSISTANT_TIMEOUT=${ASSISTANT_TIMEOUT:-60}
+      - MAX_ASSISTANT_TOKENS=${MAX_ASSISTANT_TOKENS:-1000}
+    # Альтернативно, можно использовать env_file:
+    # env_file:
+    #   - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
