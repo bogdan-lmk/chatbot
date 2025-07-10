@@ -5,8 +5,6 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Dict, Any
 
-from openai import OpenAI
-
 from src.app.db.models import Message
 from src.app.db.session import SessionLocal
 from src.app.services.faiss_index import query_index
@@ -82,16 +80,20 @@ async def post_message(req: MessageRequest, session: AsyncSession = Depends(get_
             {"role": "user", "content": req.message}
         ]
 
-        # Вызываем OpenAI
-        client = OpenAI(api_key=settings.openai_api_key)
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=messages,
-            temperature=0.1,  # Низкая температура для более точных ответов
-            max_tokens=800
+        # Используем сервис ассистента
+        from src.app.services.assistant_service import cf_anatolik_service
+        assistant_response = await cf_anatolik_service.ask_assistant(
+            message=req.message,
+            thread_id=req.thread_id
         )
         
-        reply_text = response.choices[0].message.content.strip()
+        if not assistant_response["success"]:
+            raise HTTPException(
+                status_code=500,
+                detail=assistant_response["error"]
+            )
+            
+        reply_text = assistant_response["content"]
         
         # Сохраняем ответ
         assistant_msg = Message(
@@ -121,8 +123,8 @@ async def post_message(req: MessageRequest, session: AsyncSession = Depends(get_
                     for i, doc in enumerate(good_docs[:3])
                 ],
                 "full_context": context,
-                "model_used": "gpt-3.5-turbo",
-                "tokens_used": response.usage.total_tokens
+                "model_used": assistant_response.get("model", "gpt-4o"),
+                "tokens_used": assistant_response.get("usage", {}).get("total_tokens", 0)
             }
 
         return MessageReply(

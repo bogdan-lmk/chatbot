@@ -119,14 +119,20 @@ class CFAnatolikService:
     
     def _get_or_create_thread(self, thread_id: str):
         """Получает существующий thread или создает новый"""
-        try:
-            # Пытаемся получить существующий thread
-            thread = self.client.beta.threads.retrieve(thread_id)
-            return thread
-        except:
-            # Если thread не найден, создаем новый
-            logger.info(f"Thread {thread_id} не найден, создаем новый")
-            return self.client.beta.threads.create()
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # Пытаемся получить существующий thread
+                thread = self.client.beta.threads.retrieve(thread_id)
+                return thread
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logger.warning(f"Не удалось получить thread {thread_id} после {max_retries} попыток: {str(e)}")
+                    # Если thread не найден, создаем новый
+                    logger.info(f"Thread {thread_id} не найден, создаем новый")
+                    return self.client.beta.threads.create()
+                logger.debug(f"Попытка {attempt + 1}: Ошибка получения thread {thread_id}, повторяем...")
+                time.sleep(1)
     
     def _handle_run_error(self, run) -> Dict[str, Any]:
         """Обрабатывает ошибки выполнения ассистента"""
