@@ -1,3 +1,4 @@
+# src/app/core/config.py
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -7,6 +8,7 @@ class Settings(BaseSettings):
     use_assistant_api: bool = False
     assistant_timeout: int = 60
     max_assistant_tokens: int = 1000
+    vector_store_id: str = ""  # ← ДОБАВИТЬ ЭТУ СТРОКУ
 
     class Config:
         env_file = ".env"

@@ -1,41 +1,760 @@
-<!-- src/app/templates/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Agent Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Chat - CF Anatolik</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: white;
+            border-bottom: 3px solid #4facfe;
+            color: #4facfe;
+            font-weight: bold;
+        }
+        
+        .tab:hover {
+            background: #e9ecef;
+        }
+        
+        .tab-content {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .tab-content.active {
+            display: flex;
+        }
+        
+        /* Chat Styles */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafafa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user {
+            text-align: right;
+        }
+        
+        .message.assistant {
+            text-align: left;
+        }
+        
+        .message-bubble {
+            display: inline-block;
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            margin: 0 10px;
+            word-wrap: break-word;
+        }
+        
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .message.assistant .message-bubble {
+            background: white;
+            border: 1px solid #e9ecef;
+            color: #333;
+        }
+        
+        .chat-form {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .message-input {
+            flex: 1;
+            min-height: 50px;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            resize: none;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .send-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            font-size: 1.2rem;
+        }
+        
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Upload Styles */
+        .upload-container {
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .upload-area {
+            border: 3px dashed #4facfe;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            background: #f8fbff;
+            border-color: #00f2fe;
+        }
+        
+        .upload-area.dragover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #4facfe;
+            margin-bottom: 20px;
+        }
+        
+        .upload-text {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .upload-subtext {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s ease;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .upload-progress {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            transition: width 0.3s ease;
+        }
+        
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .vector-store-info {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            text-align: left;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+        
+        .info-value {
+            color: #666;
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+        
+        .selected-files {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .selected-files h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+        }
+        
+        .files-list {
+            margin-bottom: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .file-name {
+            flex: 1;
+            color: #495057;
+        }
+        
+        .file-size {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
+        .remove-file {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        .remove-file:hover {
+            background: #c82333;
+        }
+        
+        .upload-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .upload-buttons button {
+            flex: 1;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+            
+            .upload-container {
+                padding: 20px;
+            }
+            
+            .upload-area {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>AI Agent Chat</h1>
-  <div id="chat"></div>
-  <form id="chat-form">
-    <input type="hidden" id="thread_id" value="main">
-    <textarea id="message" rows="4" cols="50" placeholder="Type your question..."></textarea><br>
-    <button type="submit">Send</button>
-  </form>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 CF Anatolik AI Agent</h1>
+            <p>Умный помощник с поиском по документам</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('chat')">💬 Чат</button>
+                <button class="tab" onclick="switchTab('upload')">📄 Загрузка PDF</button>
+            </div>
+            
+            <!-- Chat Tab -->
+            <div id="chat-tab" class="tab-content active">
+                <div class="chat-container" id="chat-messages">
+                    <div class="message assistant">
+                        <div class="message-bubble">
+                            Привет! Я CF Anatolik AI Agent. Задавайте вопросы по загруженным документам или загрузите новые PDF файлы.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-form">
+                    <form id="chat-form" class="input-group">
+                        <input type="hidden" id="thread_id" value="main">
+                        <textarea 
+                            id="message-input" 
+                            class="message-input" 
+                            placeholder="Введите ваш вопрос..." 
+                            rows="1"
+                        ></textarea>
+                        <button type="submit" class="send-btn" id="send-btn">
+                            ➤
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Upload Tab -->
+            <div id="upload-tab" class="tab-content">
+                <div class="upload-container">
+                    <div class="upload-area" id="upload-area">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">Перетащите PDF файлы сюда (до 10 файлов)</div>
+                        <div class="upload-subtext">или нажмите для выбора файлов</div>
+                        <input type="file" id="file-input" class="file-input" accept=".pdf" multiple>
+                        <button type="button" class="upload-btn" onclick="document.getElementById('file-input').click()">
+                            Выбрать файлы (до 10)
+                        </button>
+                    </div>
+                    
+                    <div id="selected-files" class="selected-files" style="display: none;">
+                        <h4>Выбранные файлы:</h4>
+                        <div id="files-list"></div>
+                        <div class="upload-buttons">
+                            <button id="upload-selected-btn" class="upload-btn">Загрузить выбранные</button>
+                            <button id="clear-selection-btn" class="upload-btn" style="background: #6c757d;">Очистить</button>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-progress" id="upload-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div id="progress-text" style="margin-top: 10px; color: #666;"></div>
+                    </div>
+                    
+                    <div class="status-message" id="status-message"></div>
+                    
+                    <div class="vector-store-info" id="vector-store-info">
+                        <h3>📊 Vector Store</h3>
+                        <div class="info-grid" id="info-grid">
+                            <div class="loading"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <script>
-    const form = document.getElementById('chat-form');
-    const chatDiv = document.getElementById('chat');
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const thread_id = document.getElementById('thread_id').value;
-      const message = document.getElementById('message').value;
-      const userElem = document.createElement('p');
-      userElem.textContent = 'You: ' + message;
-      chatDiv.appendChild(userElem);
-
-      const res = await fetch('/api/v1/message', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({thread_id, message})
-      });
-      const data = await res.json();
-      const botElem = document.createElement('p');
-      botElem.textContent = 'Bot: ' + data.reply;
-      chatDiv.appendChild(botElem);
-      document.getElementById('message').value = '';
-    });
-  </script>
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'upload') {
+                loadVectorStoreInfo();
+            }
+        }
+        
+        // Chat functionality
+        const chatForm = document.getElementById('chat-form');
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        // Send message on Enter (but not Shift+Enter)
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const threadId = document.getElementById('thread_id').value;
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            // Disable send button
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<div class="loading"></div>';
+            
+            try {
+                const response = await fetch('/api/v1/message/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        thread_id: threadId,
+                        message: message,
+                        debug: false
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addMessage(data.reply, 'assistant');
+                    if (data.sources_used > 0) {
+                        addMessage(`ℹ️ Использовано источников: ${data.sources_used}`, 'assistant', true);
+                    }
+                } else {
+                    addMessage(`Ошибка: ${data.detail || 'Неизвестная ошибка'}`, 'assistant', true);
+                }
+            } catch (error) {
+                addMessage(`Ошибка соединения: ${error.message}`, 'assistant', true);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '➤';
+            }
+        });
+        
+        function addMessage(content, role, isSystem = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            if (isSystem) bubbleDiv.style.opacity = '0.8';
+            bubbleDiv.textContent = content;
+            
+            messageDiv.appendChild(bubbleDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Upload functionality
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const uploadProgress = document.getElementById('upload-progress');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const statusMessage = document.getElementById('status-message');
+        
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                uploadFile(files[0]);
+            } else {
+                showStatus('Пожалуйста, выберите PDF файл', 'error');
+            }
+        });
+        
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                uploadFile(e.target.files[0]);
+            }
+        });
+        
+        async function uploadFile(file) {
+            if (!file.type === 'application/pdf') {
+                showStatus('Файл должен быть в формате PDF', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // Show progress
+            uploadProgress.style.display = 'block';
+            statusMessage.style.display = 'none';
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Загрузка файла...';
+            
+            try {
+                // Simulate progress for user experience
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 30;
+                    if (progress > 90) progress = 90;
+                    progressFill.style.width = progress + '%';
+                }, 500);
+                
+                const response = await fetch('/api/v1/upload/pdf', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    progressText.textContent = 'Файл успешно обработан!';
+                    showStatus(
+                        `✅ Файл "${file.name}" успешно загружен и обработан!\n` +
+                        `📊 Страниц: ${result.processing_stats.total_pages}\n` +
+                        `📝 Символов: ${result.processing_stats.char_count.toLocaleString()}\n` +
+                        `🔗 Файлов создано: ${result.processing_stats.chunks_created || 1}`,
+                        'success'
+                    );
+                    
+                    // Reload vector store info
+                    setTimeout(() => {
+                        loadVectorStoreInfo();
+                        uploadProgress.style.display = 'none';
+                    }, 2000);
+                } else {
+                    throw new Error(result.error || result.message || 'Ошибка загрузки');
+                }
+                
+            } catch (error) {
+                progressText.textContent = 'Ошибка загрузки';
+                showStatus(`❌ Ошибка: ${error.message}`, 'error');
+                uploadProgress.style.display = 'none';
+            }
+            
+            // НЕ сбрасываем fileInput.value здесь - это уже сделано в uploadFiles
+        }
+        
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+        }
+        
+        async function loadVectorStoreInfo() {
+            const infoGrid = document.getElementById('info-grid');
+            infoGrid.innerHTML = '<div class="loading"></div>';
+            
+            try {
+                const response = await fetch('/api/v1/upload/pdf/info');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Обновляем заголовок с ID vector store
+                    document.querySelector('#vector-store-info h3').textContent = 
+                        `📊 Vector Store: ${data.vector_store_id}`;
+                    
+                    infoGrid.innerHTML = `
+                        <div class="info-item">
+                            <div class="info-label">Статус</div>
+                            <div class="info-value">${data.status}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Файлов загружено</div>
+                            <div class="info-value">${data.file_counts?.total || 0}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Готовых файлов</div>
+                            <div class="info-value">${data.file_counts?.completed || 0}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Дата создания</div>
+                            <div class="info-value">${new Date(data.created_at * 1000).toLocaleDateString('ru-RU')}</div>
+                        </div>
+                    `;
+                } else {
+                    infoGrid.innerHTML = '<div style="color: #dc3545;">Ошибка загрузки информации</div>';
+                }
+            } catch (error) {
+                infoGrid.innerHTML = '<div style="color: #dc3545;">Ошибка соединения</div>';
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVectorStoreInfo();
+        });
+    </script>
 </body>
 </html>
