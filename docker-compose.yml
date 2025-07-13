@@ -1,28 +1,89 @@
-# docker-compose.yml
+# docker-compose.yml - упрощенная версия без nginx
+version: '3.8'
+
 services:
-  agent:
-    build: .
-    container_name: ai_agent
-    volumes:
-      - ./data:/app/data
-      - ./scripts:/app/scripts
-      - ./src:/app/src
-    ports:
-      - "8000:8000"
+  ai-agent:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_agent_app
+    restart: unless-stopped
+    
+    # Переменные окружения
     environment:
-      # Docker Compose автоматически читает .env файл из текущей директории
+      # OpenAI Configuration
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      
+      # Database Configuration
       - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///./data/db.sqlite3}
+      
+      # Assistant Configuration
       - ASSISTANT_ID=${ASSISTANT_ID:-}
-      - USE_ASSISTANT_API=${USE_ASSISTANT_API:-false}
+      - USE_ASSISTANT_API=${USE_ASSISTANT_API:-true}
       - ASSISTANT_TIMEOUT=${ASSISTANT_TIMEOUT:-60}
       - MAX_ASSISTANT_TOKENS=${MAX_ASSISTANT_TOKENS:-1000}
-    # Альтернативно, можно использовать env_file:
-    # env_file:
-    #   - .env
-    restart: unless-stopped
+      
+      # Vector Store Configuration
+      - VECTOR_STORE_ID=${VECTOR_STORE_ID}
+      
+      # Application Configuration
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    
+    # Порты
+    ports:
+      - "8000:8000"
+    
+    # Volumes для персистентности данных
+    volumes:
+      # Данные приложения
+      - ./data:/app/data
+      - ./logs:/app/logs
+      
+      # Для разработки (можно закомментировать в продакшене)
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+    
+    # Health check
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
+    
+    # Зависимости (если нужны другие сервисы)
+    depends_on:
+      - redis
+    
+    # Сеть
+    networks:
+      - ai-agent-network
+
+  # Redis для кэширования и session storage
+  redis:
+    image: redis:7-alpine
+    container_name: ai_agent_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - ai-agent-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Volumes
+volumes:
+  redis_data:
+    driver: local
+
+# Networks
+networks:
+  ai-agent-network:
+    driver: bridge
